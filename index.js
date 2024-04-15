@@ -26,12 +26,16 @@ app.use(checkForAuthenticationCookie('token'));
 app.use(express.static(path.resolve('./public'))); 
 
 app.get('/', async (req, res) => {
-    const allblogs =  await blogsCollection.find({}).toArray();
+    let allblogs = [];
+    if(req.user){
+        allblogs = await blogsCollection.find({createdby: req.user.id}).toArray();
+    }
     res.render('home',{
         user: req.user,
         blogs : allblogs
     });
 });
+
 
 app.use('/user',userrouter);
 app.use('/blog',blogrouter);
