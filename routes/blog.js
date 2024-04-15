@@ -1,5 +1,5 @@
 const path = require('path');
-const { MongoClient } = require('mongodb');
+const { MongoClient , ObjectId } = require('mongodb');
 const multer  = require('multer');
 const url = process.env.URL || 'mongodb://localhost:27017';
 const client = new MongoClient(url);
@@ -44,7 +44,7 @@ router.post('/addblog',upload.single('coverimage'),async (req,res)=>{
 });
 
 router.get('/:id',async (req,res)=>{
-    const blog = await blogsCollection.findOne({_id: new ObjectID(req.params.id)});
+    const blog = await blogsCollection.findOne({_id: new ObjectId(req.params.id)});
     const comment = await commentsCollection.find({blogid : req.params.id}).toArray();
     res.render('blog',{
         blog: blog,
