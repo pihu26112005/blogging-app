@@ -1,7 +1,14 @@
 const path = require('path');
-const BLOG = require('../models/blog');
-const COMMENT = require('../models/comment');
-const multer  = require('multer')
+const { MongoClient } = require('mongodb');
+const multer  = require('multer');
+const url = process.env.URL || 'mongodb://localhost:27017';
+const client = new MongoClient(url);
+const dbName = 'blog-globe';
+client.connect();
+const db = client.db(dbName);
+
+const blogsCollection = db.collection('blogs');
+const commentsCollection = db.collection('comments');
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -26,33 +33,33 @@ router.get("/addblog",(req,res)=>{
 
 router.post('/addblog',upload.single('coverimage'),async (req,res)=>{
     console.log(req.user);
-    const blog = await BLOG.create({
+    const blog = {
         title : req.body.title,
         body : req.body.body,
         backcoverURL : `/uploads/${req.file.filename}`,
         createdby : req.user.id
-    });
+    };
+    await blogsCollection.insertOne(blog);
     return res.redirect('/');
 });
 
 router.get('/:id',async (req,res)=>{
-    const blog = await BLOG.findById(req.params.id).populate("createdby");
-    // ye populate basiccaly cretedby ka use krke user ki sari info is blog object me add kr dega 
-    // aur hum blog ko blog.ejs me passs kr rhe hai , toh hum vha username access kr skte hai
-    const comment = await COMMENT.find({blogid : req.params.id}).populate('createdby');
+    const blog = await blogsCollection.findOne({_id: new ObjectID(req.params.id)});
+    const comment = await commentsCollection.find({blogid : req.params.id}).toArray();
     res.render('blog',{
         blog: blog,
         comment: comment,
         user: req.user
     });
 });
- 
+
 router.post('/:id/comment',async (req,res)=>{
-   const newcomment = await COMMENT.create({
-    content : req.body.content,
-    blogid : req.params.id,
-    createdby : req.user.id
-});
+    const newcomment = {
+        content : req.body.content,
+        blogid : req.params.id,
+        createdby : req.user.id
+    };
+    await commentsCollection.insertOne(newcomment);
     res.redirect(`/blog/${req.params.id}`);
 });
 
