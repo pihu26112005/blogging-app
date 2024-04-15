@@ -19,5 +19,8 @@ router.get('/logout',(req,res)=>{
     res.clearCookie('token').redirect('/');
 });
  
+router.get('/in',(req,res)=>{
+    res.render('signin&signup');
+});
 
 module.exports = router;
