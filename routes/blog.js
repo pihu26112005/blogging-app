@@ -44,13 +44,17 @@ router.post('/addblog',upload.single('coverimage'),async (req,res)=>{
 });
 
 router.get('/:id',async (req,res)=>{
-    const blog = await blogsCollection.findOne({_id: new ObjectId(req.params.id)});
-    const comment = await commentsCollection.find({blogid : req.params.id}).toArray();
-    res.render('blog',{
-        blog: blog,
-        comment: comment,
-        user: req.user
-    });
+    if(req.user){
+        const blog = await blogsCollection.findOne({_id: new ObjectId(req.params.id)});
+        const comment = await commentsCollection.find({blogid : req.params.id}).toArray();
+        res.render('blog',{
+            blog: blog,
+            comment: comment,
+            user: req.user
+        });
+    } else {
+        res.redirect('/user/in');
+    }
 });
 
 router.post('/:id/comment',async (req,res)=>{
